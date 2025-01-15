@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <title>Digital Theremin</title>
+    <style>
+      body {
+        cursor: url(oth505.cur), auto;
+        font-family: "Times New Roman", sans-serif;
+        background-color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <label for="vibratoSlider">Vibrato</label>
+    <input type="range" id="vibratoSlider" min="0" max="10" value="5" step="0.1">
+    <br>
+
+    <script src="https://unpkg.com/tone"></script>
+    <script src="https://cdn.jsdelivr.net/gh/netizenorg/netnet-standard-library/build/nn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://algorithmicmusic.online/js/create-spectrum.js"></script>
+    <script src="https://algorithmicmusic.online/js/create-waveform.js"></script>
+
+    <script>
+      //base code is from https://algorithmicmusic.online/sound/
+      const wave = createWaveform()
+
+      const spec = createSpectrum({
+        range: [20, 2000]
+      })
+
+      const osc = new Tone.Oscillator()
+      osc.frequency.value = 440
+      osc.type = 'sine'
+      osc.toDestination()
+      osc.connect(wave)
+      osc.connect(spec)
+
+      // Variables for vibrato control
+      let vibratoFrequency = 5 // Vibrato speed in Hz
+      let vibratoDepth = 5 // Vibrato depth (in Hz)
+      let baseFrequency = osc.frequency.value // The base frequency to apply vibrato to
+      let vibratoStartTime = null
+      let vibratoInterval = null
+
+      function start() {
+        osc.start()
+        vibratoStartTime = Date.now() // Capture the start time of the vibrato
+        vibratoInterval = requestAnimationFrame(applyVibrato)
+      }
+
+      function stop() {
+        osc.stop()
+        cancelAnimationFrame(vibratoInterval) // Stop vibrato effect
+      }
+
+      // Update the frequency and volume based on the mouse position
+      function update(e) {
+        const freq = nn.map(e.x, 0, nn.width, 220, 1760)
+        const vol = nn.map(e.y, 0, nn.height, 0, -80)
+        baseFrequency = freq
+        osc.volume.value = vol
+      }
+
+      // Function to manually apply vibrato
+      function applyVibrato() {
+        if (!vibratoStartTime) return
+
+        // Calculate the time since the vibrato started
+        const timeElapsed = (Date.now() - vibratoStartTime) / 1000 // Convert to seconds
+
+        // Calculate the vibrato modulation (sinusoidal wave)
+        const vibratoModulation = Math.sin(2 * Math.PI * vibratoFrequency * timeElapsed) * vibratoDepth
+
+        // Apply the vibrato effect to the oscillator's frequency
+        osc.frequency.value = baseFrequency + vibratoModulation
+
+        // Call this function again to continue updating the vibrato effect
+        vibratoInterval = requestAnimationFrame(applyVibrato)
+      }
+
+      // Update the vibrato intensity based on the slider value
+      function updateVibratoIntensity() {
+        const intensity = document.getElementById('vibratoSlider').value
+        vibratoFrequency = 5 + intensity / 2 // Map slider value to vibrato speed (frequency)
+        vibratoDepth = intensity / 2 // Map slider value to vibrato depth (how much frequency fluctuates)
+      }
+
+      // Listen for slider changes
+      document.getElementById('vibratoSlider').addEventListener('input', updateVibratoIntensity)
+
+      // Event listeners for the theremin interaction
+      nn.on('mousedown', start)
+      nn.on('mouseup', stop)
+      nn.on('mousemove', update)
+    </script>
+  </body>
