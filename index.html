@@ -37,25 +37,25 @@
       osc.connect(wave)
       osc.connect(spec)
 
-      // Variables for vibrato control
-      let vibratoFrequency = 5 // Vibrato speed in Hz
-      let vibratoDepth = 5 // Vibrato depth (in Hz)
-      let baseFrequency = osc.frequency.value // The base frequency to apply vibrato to
+
+      let vibratoFrequency = 6
+      let vibratoDepth = 6
+      let baseFrequency = osc.frequency.value
       let vibratoStartTime = null
       let vibratoInterval = null
 
       function start() {
         osc.start()
-        vibratoStartTime = Date.now() // Capture the start time of the vibrato
+        vibratoStartTime = Date.now()
         vibratoInterval = requestAnimationFrame(applyVibrato)
       }
 
       function stop() {
         osc.stop()
-        cancelAnimationFrame(vibratoInterval) // Stop vibrato effect
+        cancelAnimationFrame(vibratoInterval)
       }
 
-      // Update the frequency and volume based on the mouse position
+
       function update(e) {
         const freq = nn.map(e.x, 0, nn.width, 220, 1760)
         const vol = nn.map(e.y, 0, nn.height, 0, -80)
@@ -63,36 +63,47 @@
         osc.volume.value = vol
       }
 
-      // Function to manually apply vibrato
       function applyVibrato() {
         if (!vibratoStartTime) return
 
-        // Calculate the time since the vibrato started
-        const timeElapsed = (Date.now() - vibratoStartTime) / 1000 // Convert to seconds
+        const timeElapsed = (Date.now() - vibratoStartTime) / 1000
 
-        // Calculate the vibrato modulation (sinusoidal wave)
         const vibratoModulation = Math.sin(2 * Math.PI * vibratoFrequency * timeElapsed) * vibratoDepth
-
-        // Apply the vibrato effect to the oscillator's frequency
         osc.frequency.value = baseFrequency + vibratoModulation
-
-        // Call this function again to continue updating the vibrato effect
         vibratoInterval = requestAnimationFrame(applyVibrato)
       }
 
-      // Update the vibrato intensity based on the slider value
       function updateVibratoIntensity() {
         const intensity = document.getElementById('vibratoSlider').value
-        vibratoFrequency = 5 + intensity / 2 // Map slider value to vibrato speed (frequency)
-        vibratoDepth = intensity / 2 // Map slider value to vibrato depth (how much frequency fluctuates)
+        vibratoFrequency = 5 + intensity / 2
+        vibratoDepth = intensity / 2
       }
 
-      // Listen for slider changes
-      document.getElementById('vibratoSlider').addEventListener('input', updateVibratoIntensity)
+      let mouseDown = false;
 
-      // Event listeners for the theremin interaction
+      function changeColor(event) {
+        if (!mouseDown) return;
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        const red = Math.floor((mouseX / window.innerWidth) * 255);
+        const green = Math.floor((mouseY / window.innerHeight) * 255);
+        const blue = Math.floor(((mouseX + mouseY) / (window.innerWidth + window.innerHeight)) * 255);
+        document.body.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
+      }
+      document.getElementById('vibratoSlider').addEventListener('input', updateVibratoIntensity)
+      window.addEventListener('mousedown', () => {
+        mouseDown = true;
+      });
+
+      window.addEventListener('mouseup', () => {
+        mouseDown = false;
+      });
+
+      window.addEventListener('mousemove', changeColor);
+
       nn.on('mousedown', start)
       nn.on('mouseup', stop)
       nn.on('mousemove', update)
     </script>
   </body>
+</html>
