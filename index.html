@@ -85,10 +85,10 @@
         if (!mouseDown) return;
         const mouseX = event.clientX;
         const mouseY = event.clientY;
-        const red = Math.floor((mouseX / window.innerWidth) * 255);
-        const green = Math.floor((mouseY / window.innerHeight) * 255);
-        const blue = Math.floor(((mouseX + mouseY) / (window.innerWidth + window.innerHeight)) * 255);
-        document.body.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
+        const red = Math.floor((mouseX / window.innerWidth) * 400);
+ //       const green = Math.floor((mouseY / window.innerHeight) * 400);
+        const blue = Math.floor(((mouseX + mouseY) / (window.innerWidth + window.innerHeight)) * 400);
+        document.body.style.backgroundColor = `rgb(${red}, 200, ${blue})`;
       }
       document.getElementById('vibratoSlider').addEventListener('input', updateVibratoIntensity)
       window.addEventListener('mousedown', () => {
@@ -97,6 +97,7 @@
 
       window.addEventListener('mouseup', () => {
         mouseDown = false;
+        document.body.style.backgroundColor = `rgb(255, 255, 255`;
       });
 
       window.addEventListener('mousemove', changeColor);
